@@ -1,86 +1,86 @@
 import { Request } from 'express';
 
-export interface CssFileMetadataResponse {
-  objectId: string;
-  sessionId: string;
-  timestamp: number;
-  contentType: string;
-  objectName: string;
-  initiatorId: string;
-  preSignedUrl: string;
+export interface ICssFileMetadataResponse {
+    contentType: string;
+    initiatorId: string;
+    objectId: string;
+    objectName: string;
+    preSignedUrl: string;
+    sessionId: string;
+    timestamp: number;
 }
 
-export interface DocumentMetadataResponse {
-  fileId: string;
-  sessionId: string;
-  fileName: string;
-  customerId: string;
-  userId: string;
-  presignedUrl: string;
-  createdAt: number;
-  fileSize: number;
+export interface IDocumentMetadataResponse {
+    createdAt: number;
+    customerId: string;
+    fileId: string;
+    fileName: string;
+    fileSize: number;
+    presignedUrl: string;
+    sessionId: string;
+    userId: string;
 }
 
-export interface AddDocumentResponse {
-  fileId: string;
+export interface IAddDocumentResponse {
+    fileId: string;
 }
 
-export interface PaginatedResponseCssFileMetadataResponse {
-  content: CssFileMetadataResponse[];
-  nextStartWith?: string;
+export interface IPaginatedResponseCssFileMetadataResponse {
+    content: ICssFileMetadataResponse[];
+    nextStartWith?: string;
 }
 
-export interface FileMetadata {
-  conferenceFullName: string;
-  timestamp: number;
-  fileSize: number;
-  fileId: string;
+export interface IFileMetadata {
+    conferenceFullName: string;
+    fileId: string;
+    fileSize: number;
+    timestamp: number;
 }
 
-export interface JwtPayload {
-  sub: string;
-  backend_region: string;
-  nbf?: number;
-  aud: string | string[];
-  exp?: number;
-  room: string;
-  meeting_id: string;
-  iss: string;
-  context: {
-    user: {
-      name: string;
-      avatar?: string;
-      id: number;
-      moderator: boolean;
-      'hidden-from-recorder'?: boolean;
-      email?: string;
-      role: string;
+export interface IJwtPayload {
+    aud: string | string[];
+    backend_region: string;
+    context: {
+        features: {
+            'file-upload'?: boolean;
+            livestreaming?: boolean;
+            'outbound-call'?: boolean;
+            recording?: boolean;
+            'sip-outbound-call'?: boolean;
+            transcription?: boolean;
+        };
+        user: {
+            avatar?: string;
+            email?: string;
+            'hidden-from-recorder'?: boolean;
+            id: number;
+            moderator: boolean;
+            name: string;
+            role: string;
+        };
     };
-    features: {
-      'outbound-call'?: boolean;
-      'sip-outbound-call'?: boolean;
-      'file-upload'?: boolean;
-      recording?: boolean;
-      livestreaming?: boolean;
-      transcription?: boolean;
-    };
-  };
+    exp?: number;
+    iss: string;
+    meeting_id: string;
+    nbf?: number;
+    room: string;
+    sub: string;
 }
 
-export interface AuthenticatedRequest extends Request {
-  user: JwtPayload;
+export interface IAuthenticatedRequest extends Request {
+    user: IJwtPayload;
 }
 
-export interface FileRecord {
-  fileId: string;
-  sessionId: string;
-  fileName: string;
-  originalName: string;
-  contentType: string;
-  fileSize: number;
-  userId: string;
-  customerId: string;
-  createdAt: number;
-  filePath: string;
-  metadata: FileMetadata;
+export interface IFileRecord {
+    contentType: string;
+    createdAt: number;
+    customerId: string;
+    fileId: string;
+    fileName: string;
+    filePath: string;
+    fileSize: number;
+    metadata: IFileMetadata;
+    originalName: string;
+    sessionId: string;
+    userId: string;
 }
