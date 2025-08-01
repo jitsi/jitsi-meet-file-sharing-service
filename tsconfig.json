@@ -1,27 +1,18 @@
 {
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "module": "es2020",
-    "target": "es2024",
-    "jsx": "react",
-    "lib": ["ES2024", "DOM"],
-    "skipLibCheck": true,
-    "moduleResolution": "Node",
-    "strict": true,
-    "noImplicitAny": true,
-    "noImplicitOverride": true,
-    "strictPropertyInitialization": false,
-    "resolveJsonModule": true,
-    "moduleSuffixes": [".web", ""],
+    "target": "ES2020",
+    "module": "CommonJS",
     "outDir": "./dist",
     "rootDir": "./src",
+    "strict": true,
     "esModuleInterop": true,
+    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true,
-    "removeComments": true
+    "sourceMap": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts"]
+  "exclude": ["node_modules", "dist"]
 }
