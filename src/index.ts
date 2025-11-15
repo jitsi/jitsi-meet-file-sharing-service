@@ -2,7 +2,6 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import documentRoutes from './routes/documents';
-import excalidrawRoutes from './routes/excalidraw';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,7 +19,6 @@ app.use((req, res, next) => {
 // OPTIONS requests are handled by Nginx
 
 app.use('/v1/documents', documentRoutes);
-app.use('/v1/excalidraw', excalidrawRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });

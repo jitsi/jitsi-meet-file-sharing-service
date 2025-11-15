@@ -35,6 +35,7 @@ export interface IFileMetadata {
     fileId: string;
     fileSize: number;
     timestamp: number;
+    prefix?: string;
 }
 
 export interface IJwtPayload {
@@ -83,4 +84,13 @@ export interface IFileRecord {
     originalName: string;
     sessionId: string;
     userId: string;
+}
+
+export interface StorageConfig {
+  endPoint: string;
+  port: number;
+  useSSL: boolean;
+  accessKey: string;
+  secretKey: string;
+  bucket: string;
 }

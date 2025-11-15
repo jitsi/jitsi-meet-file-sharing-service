@@ -1,35 +1,27 @@
 import { Client } from 'minio';
+import { StorageConfig } from '../types';
 
-interface MinioConfig {
-  endPoint: string;
-  port: number;
-  useSSL: boolean;
-  accessKey: string;
-  secretKey: string;
-  bucket: string;
-}
-
-const MINIO_CONFIG: MinioConfig = {
-  endPoint: process.env.MINIO_ENDPOINT || 'localhost',
-  port: parseInt(process.env.MINIO_PORT || '9000', 10),
-  useSSL: process.env.MINIO_USE_SSL === 'true',
-  accessKey: process.env.MINIO_ACCESS_KEY || 'minioadmin',
-  secretKey: process.env.MINIO_SECRET_KEY || 'minioadmin',
-  bucket: process.env.MINIO_BUCKET || 'excalidraw',
+const S3_STORAGE_CONFIG: StorageConfig = {
+  endPoint: process.env.S3_STORAGE_ENDPOINT || 'localhost',
+  port: parseInt(process.env.S3_STORAGE_PORT || '9000', 10),
+  useSSL: process.env.S3_STORAGE_USE_SSL === 'true',
+  accessKey: process.env.S3_STORAGE_ACCESS_KEY || 'minioadmin',
+  secretKey: process.env.S3_STORAGE_SECRET_KEY || 'minioadmin',
+  bucket: process.env.S3_STORAGE_BUCKET || 'jitsi',
 };
 
-export class MinioService {
+export class S3StorageService {
   private client: Client;
   private readonly bucket: string;
 
   constructor() {
-    this.bucket = MINIO_CONFIG.bucket;
+    this.bucket = S3_STORAGE_CONFIG.bucket;
     this.client = new Client({
-      endPoint: MINIO_CONFIG.endPoint,
-      port: MINIO_CONFIG.port,
-      useSSL: MINIO_CONFIG.useSSL,
-      accessKey: MINIO_CONFIG.accessKey,
-      secretKey: MINIO_CONFIG.secretKey,
+      endPoint: S3_STORAGE_CONFIG.endPoint,
+      port: S3_STORAGE_CONFIG.port,
+      useSSL: S3_STORAGE_CONFIG.useSSL,
+      accessKey: S3_STORAGE_CONFIG.accessKey,
+      secretKey: S3_STORAGE_CONFIG.secretKey,
     });
 
     this.ensureBucket().catch(console.error);
@@ -54,7 +46,7 @@ export class MinioService {
     };
 
     await this.client.putObject(this.bucket, objectName, buffer, buffer.length, metadata);
-    console.log(`Saved file to MinIO: ${objectName}`);
+    console.log(`Saved file to S3 Storage: ${objectName}`);
   }
 
   async getFile(objectName: string): Promise<Buffer | null> {
@@ -80,10 +72,10 @@ export class MinioService {
     try {
       await this.ensureBucket();
       await this.client.removeObject(this.bucket, objectName);
-      console.log(`Deleted file from MinIO: ${objectName}`);
+      console.log(`Deleted file from S3 Storage: ${objectName}`);
       return true;
     } catch (error: any) {
-      console.error(`Error deleting file from MinIO: ${objectName}`, error);
+      console.error(`Error deleting file from S3 Storage: ${objectName}`, error);
       return false;
     }
   }

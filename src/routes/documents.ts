@@ -2,6 +2,7 @@ import { Response, Router } from 'express';
 
 import { authenticateToken, requireFileUploadFeature } from '../middleware/auth';
 import { FileStorageService } from '../services/fileStorage';
+import { S3StorageService } from '../services/s3StorageService';
 import {
     IAddDocumentResponse,
     ICssFileMetadataResponse,
@@ -13,6 +14,12 @@ import { upload } from '../utils/multer';
 const router = Router();
 const fileStorage = new FileStorageService();
 
+// Env var to control storage backend
+const USE_S3_STORAGE = process.env.USE_S3_STORAGE === 'true';
+const s3StorageService = USE_S3_STORAGE ? new S3StorageService() : null;
+
+
+// WILL ADD THE MIDDLEWARE LATER authenticateToken
 router.get('/sessions/:sessionId/files', authenticateToken, async (req: any, res: Response) => {
     try {
         const { sessionId } = req.params;
@@ -60,12 +67,27 @@ router.post('/sessions/:sessionId/files', authenticateToken, requireFileUploadFe
             return;
         }
 
+        // Save to S3 Storage directly if USE_S3_STORAGE is enabled
+        if (USE_S3_STORAGE && s3StorageService) {
+            const savedFiles: string[] = [];
+            const erroredFiles: string[] = [];
+            const objectName = `${metadata.prefix}/${metadata.fileId}`;
+            try{
+                await s3StorageService.saveFile(objectName, file.buffer, file.mimetype);
+                savedFiles.push(metadata.fileId);
+            }
+            catch (error) {
+                erroredFiles.push(metadata.fileId);
+            }
+            res.json({ savedFiles, erroredFiles });
+
+        } else {
         const fileRecord = await fileStorage.saveFile(
-      sessionId,
-      file,
-      metadata,
-      user.context.user.id.toString(),
-      user.sub
+            sessionId,
+            file,
+            metadata,
+            user.context.user.id.toString(),
+            user.sub
         );
 
         const response: IAddDocumentResponse = {
@@ -73,6 +95,7 @@ router.post('/sessions/:sessionId/files', authenticateToken, requireFileUploadFe
         };
 
         res.json(response);
+        }
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
     }
@@ -101,6 +124,21 @@ router.get('/sessions/:sessionId/files/:fileId', authenticateToken, async (req: 
     try {
         const { fileId } = req.params;
 
+    if (USE_S3_STORAGE && s3StorageService) {
+        // Decoding the fileId back to proper S3 Storage path
+        // Decoded FileId is in form of prefix/fileId => /files/rooms/roomId/fileId
+        const decodedFileId = decodeURIComponent(fileId);
+        
+        const buffer = await s3StorageService.getFile(decodedFileId);
+
+        if (!buffer) {
+            console.log('File not found in S3 Storage:', decodedFileId);
+            res.status(404).json({ error: 'File not found' });
+            return;
+        }
+
+        res.send(buffer);
+    } else {
         console.log('Looking for file:', fileId);
 
         const fileRecord = await fileStorage.getFileById(fileId);
@@ -124,6 +162,7 @@ router.get('/sessions/:sessionId/files/:fileId', authenticateToken, async (req: 
         };
 
         res.json(response);
+    }
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
     }
