@@ -87,10 +87,20 @@ export interface IFileRecord {
 }
 
 export interface StorageConfig {
-  endPoint: string;
+  endpoint: string;
   port: number;
   useSSL: boolean;
   accessKey: string;
   secretKey: string;
   bucket: string;
+}
+
+export interface IStorageService {
+  saveFile(sessionId: string, file: Express.Multer.File, metadata: IFileMetadata, userId: string, customerId: string): Promise<IFileRecord>;
+  getFilesBySession(sessionId: string): Promise<IFileRecord[]>;
+  getFileById(fileId: string): Promise<IFileRecord | undefined>;
+  deleteFile(fileId: string): Promise<boolean>;
+  deleteFilesBySession(sessionId: string, userId?: string, customerId?: string): Promise<number>;
+  generatePreSignedUrl(fileId: string): string;
+  getFileStream(fileId: string): Promise<{ contentType: string; fileName: string; stream: NodeJS.ReadableStream | Buffer; } | null>;
 }

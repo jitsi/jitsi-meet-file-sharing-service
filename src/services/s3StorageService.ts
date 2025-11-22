@@ -2,7 +2,7 @@ import { Client } from 'minio';
 import { StorageConfig } from '../types';
 
 const S3_STORAGE_CONFIG: StorageConfig = {
-  endPoint: process.env.S3_STORAGE_ENDPOINT || 'localhost',
+  endpoint: process.env.S3_STORAGE_ENDPOINT || 'localhost',
   port: parseInt(process.env.S3_STORAGE_PORT || '9000', 10),
   useSSL: process.env.S3_STORAGE_USE_SSL === 'true',
   accessKey: process.env.S3_STORAGE_ACCESS_KEY || 'minioadmin',
@@ -17,7 +17,7 @@ export class S3StorageService {
   constructor() {
     this.bucket = S3_STORAGE_CONFIG.bucket;
     this.client = new Client({
-      endPoint: S3_STORAGE_CONFIG.endPoint,
+      endPoint: S3_STORAGE_CONFIG.endpoint,
       port: S3_STORAGE_CONFIG.port,
       useSSL: S3_STORAGE_CONFIG.useSSL,
       accessKey: S3_STORAGE_CONFIG.accessKey,
@@ -49,7 +49,7 @@ export class S3StorageService {
     console.log(`Saved file to S3 Storage: ${objectName}`);
   }
 
-  async getFile(objectName: string): Promise<Buffer | null> {
+  async getFileById(objectName: string): Promise<Buffer | null> {
     try {
       await this.ensureBucket();
       const stream = await this.client.getObject(this.bucket, objectName);
