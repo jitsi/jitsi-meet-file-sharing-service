@@ -1,7 +1,7 @@
 import { Response, Router } from 'express';
 
 import { authenticateToken, requireFileUploadFeature } from '../middleware/auth';
-import { FileStorageService } from '../services/fileStorage';
+import { StorageServiceAdapter } from '../services/storageAdapter';
 import {
     IAddDocumentResponse,
     ICssFileMetadataResponse,
@@ -11,7 +11,7 @@ import {
 import { upload } from '../utils/multer';
 
 const router = Router();
-const fileStorage = new FileStorageService();
+const fileStorage = new StorageServiceAdapter();
 
 router.get('/sessions/:sessionId/files', authenticateToken, async (req: any, res: Response) => {
     try {
