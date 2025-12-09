@@ -1,7 +1,7 @@
 import { Response, Router } from 'express';
 
 import { authenticateToken, requireFileUploadFeature } from '../middleware/auth';
-import { FileStorageService } from '../services/fileStorage';
+import { StorageServiceAdapter } from '../services/storageAdapter';
 import {
     IAddDocumentResponse,
     ICssFileMetadataResponse,
@@ -11,7 +11,7 @@ import {
 import { upload } from '../utils/multer';
 
 const router = Router();
-const fileStorage = new FileStorageService();
+const fileStorage = new StorageServiceAdapter();
 
 router.get('/sessions/:sessionId/files', authenticateToken, async (req: any, res: Response) => {
     try {
@@ -61,11 +61,11 @@ router.post('/sessions/:sessionId/files', authenticateToken, requireFileUploadFe
         }
 
         const fileRecord = await fileStorage.saveFile(
-      sessionId,
-      file,
-      metadata,
-      user.context.user.id.toString(),
-      user.sub
+            sessionId,
+            file,
+            metadata,
+            user.context.user.id.toString(),
+            user.sub
         );
 
         const response: IAddDocumentResponse = {
@@ -100,10 +100,9 @@ router.delete('/sessions/:sessionId/files', authenticateToken, requireFileUpload
 router.get('/sessions/:sessionId/files/:fileId', authenticateToken, async (req: any, res: Response) => {
     try {
         const { fileId } = req.params;
+        const decodedFileId = decodeURIComponent(fileId);
 
-        console.log('Looking for file:', fileId);
-
-        const fileRecord = await fileStorage.getFileById(fileId);
+        const fileRecord = await fileStorage.getFileById(decodedFileId);
 
         if (!fileRecord) {
             console.log('File not found in storage:', fileId);
@@ -132,8 +131,9 @@ router.get('/sessions/:sessionId/files/:fileId', authenticateToken, async (req: 
 router.delete('/sessions/:sessionId/files/:fileId', authenticateToken, requireFileUploadFeature, async (req: any, res: Response) => {
     try {
         const { fileId } = req.params;
+        const decodedFileId = decodeURIComponent(fileId);
 
-        const deleted = await fileStorage.deleteFile(fileId);
+        const deleted = await fileStorage.deleteFile(decodedFileId);
 
         if (!deleted) {
             res.status(404).json({ error: 'File not found' });
@@ -150,8 +150,9 @@ router.delete('/sessions/:sessionId/files/:fileId', authenticateToken, requireFi
 router.get('/download/:fileId', async (req, res) => {
     try {
         const { fileId } = req.params;
+        const decodedFileId = decodeURIComponent(fileId);
 
-        const fileStream = await fileStorage.getFileStream(fileId);
+        const fileStream = await fileStorage.getFileStream(decodedFileId);
 
         if (!fileStream) {
             res.status(404).json({ error: 'File not found' });
@@ -162,7 +163,11 @@ router.get('/download/:fileId', async (req, res) => {
         res.setHeader('Content-Type', fileStream.contentType);
         res.setHeader('Content-Disposition', `attachment; filename="${fileStream.fileName}"`);
 
-        fileStream.stream.pipe(res);
+        if (Buffer.isBuffer(fileStream.stream)) {
+            res.send(fileStream.stream);
+        } else {
+            fileStream.stream.pipe(res);
+        }
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
     }

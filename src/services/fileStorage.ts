@@ -1,17 +1,16 @@
 import fs from 'fs/promises';
-import _mime from 'mime-types';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
-import { IFileMetadata, IFileRecord } from '../types';
+import { IFileMetadata, IFileRecord, IStorageService } from '../types';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || './uploads';
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
-export class FileStorageService {
+export class FileStorageService implements IStorageService {
     private fileRecords: Map<string, IFileRecord> = new Map();
 
-    async ensureUploadDir(): Promise<void> {
+    private async ensureUploadDir(): Promise<void> {
         try {
             await fs.access(UPLOAD_DIR);
         } catch {
@@ -28,7 +27,6 @@ export class FileStorageService {
     ): Promise<IFileRecord> {
         await this.ensureUploadDir();
 
-        // Use fileId from metadata if provided, otherwise generate one
         const fileId = metadata.fileId || uuidv4();
         const fileExtension = path.extname(file.originalname);
         const fileName = `${fileId}${fileExtension}`;
@@ -51,15 +49,14 @@ export class FileStorageService {
         };
 
         this.fileRecords.set(fileId, fileRecord);
-        console.log('File saved to storage:', fileId);
-        console.log('Total files in storage:', this.fileRecords.size);
+        console.log('File saved to local storage:', fileId);
 
         return fileRecord;
     }
 
     async getFilesBySession(sessionId: string): Promise<IFileRecord[]> {
         return Array.from(this.fileRecords.values()).filter(
-      record => record.sessionId === sessionId
+            record => record.sessionId === sessionId
         );
     }
 
@@ -69,13 +66,11 @@ export class FileStorageService {
 
     async deleteFile(fileId: string): Promise<boolean> {
         const fileRecord = this.fileRecords.get(fileId);
-
         if (!fileRecord) return false;
 
         try {
             await fs.unlink(fileRecord.filePath);
             this.fileRecords.delete(fileId);
-
             return true;
         } catch {
             return false;
@@ -87,18 +82,15 @@ export class FileStorageService {
             if (record.sessionId !== sessionId) return false;
             if (userId && record.userId !== userId) return false;
             if (customerId && record.customerId !== customerId) return false;
-
             return true;
         });
 
         let deletedCount = 0;
-
         for (const file of filesToDelete) {
             if (await this.deleteFile(file.fileId)) {
                 deletedCount++;
             }
         }
-
         return deletedCount;
     }
 
@@ -106,14 +98,12 @@ export class FileStorageService {
         return `${BASE_URL}/v1/documents/download/${fileId}`;
     }
 
-    async getFileStream(fileId: string): Promise<{ contentType: string; fileName: string; stream: NodeJS.ReadableStream; } | null> {
+    async getFileStream(fileId: string): Promise<{ contentType: string; fileName: string; stream: NodeJS.ReadableStream | Buffer; } | null> {
         const fileRecord = this.fileRecords.get(fileId);
-
         if (!fileRecord) return null;
 
         try {
             const stream = await fs.open(fileRecord.filePath, 'r');
-
             return {
                 stream: stream.createReadStream(),
                 contentType: fileRecord.contentType,
