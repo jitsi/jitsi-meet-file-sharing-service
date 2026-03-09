@@ -50,13 +50,8 @@ export interface IJwtPayload {
             transcription?: boolean;
         };
         user: {
-            avatar?: string;
-            email?: string;
-            'hidden-from-recorder'?: boolean;
             id: number;
-            moderator: boolean;
             name: string;
-            role: string;
         };
     };
     exp?: number;
