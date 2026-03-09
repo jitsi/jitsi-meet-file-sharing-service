@@ -43,7 +43,7 @@ export class FileStorageService {
             fileId,
             sessionId,
             fileName,
-            originalName: file.originalname,
+            originalName: Buffer.from(file.originalname, 'latin1').toString('utf8'),
             contentType: file.mimetype,
             fileSize: file.size,
             userId,
