@@ -9,6 +9,7 @@ import {
     IFileMetadata
 } from '../types';
 import { upload } from '../utils/multer';
+import { validatePresignedUrl } from '../utils/presignedUrl';
 
 const router = Router();
 const fileStorage = new FileStorageService();
@@ -170,9 +171,16 @@ router.delete('/sessions/:sessionId/files/:fileId', authenticateToken, requireFi
     }
 });
 
-router.get('/download/:fileId', async (req, res) => {
+router.get('/download/:fileId', async (req: any, res: Response) => {
     try {
         const { fileId } = req.params;
+        const { expires, sig } = req.query as { expires?: string; sig?: string };
+
+        if (!validatePresignedUrl(fileId, expires, sig)) {
+            res.status(403).json({ error: 'Invalid or expired download link' });
+
+            return;
+        }
 
         const fileStream = await fileStorage.getFileStream(fileId);
 
@@ -187,6 +195,13 @@ router.get('/download/:fileId', async (req, res) => {
         const encodedFileName = encodeURIComponent(fileStream.fileName).replace(/'/g, '%27');
 
         res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodedFileName}`);
+
+        fileStream.stream.on('error', (streamErr) => {
+            console.error('Stream error while sending file:', fileId, streamErr);
+            if (!res.headersSent) {
+                res.status(500).json({ error: 'Internal server error' });
+            }
+        });
 
         fileStream.stream.pipe(res);
     } catch (error) {

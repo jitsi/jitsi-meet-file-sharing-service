@@ -4,6 +4,7 @@ import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
 import { IFileMetadata, IFileRecord } from '../types';
+import { generatePresignedUrl } from '../utils/presignedUrl';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || './uploads';
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
@@ -105,7 +106,7 @@ export class FileStorageService {
     }
 
     generatePreSignedUrl(fileId: string): string {
-        return `${BASE_URL}/v1/documents/download/${fileId}`;
+        return generatePresignedUrl(BASE_URL, fileId);
     }
 
     async getFileStream(fileId: string): Promise<{ contentType: string; fileName: string; stream: NodeJS.ReadableStream; } | null> {
