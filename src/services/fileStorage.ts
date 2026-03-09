@@ -77,12 +77,16 @@ export class FileStorageService {
 
         try {
             await fs.unlink(fileRecord.filePath);
-            this.fileRecords.delete(fileId);
-
-            return true;
-        } catch {
-            return false;
+        } catch (error) {
+            // Log but do not abort: the in-memory record must still be removed to
+            // keep metadata consistent with the filesystem. An orphaned disk file
+            // is preferable to an orphaned record that blocks future uploads.
+            console.error('Failed to unlink file from disk:', fileRecord.filePath, error);
         }
+
+        this.fileRecords.delete(fileId);
+
+        return true;
     }
 
     async deleteFilesBySession(sessionId: string, userId?: string, customerId?: string): Promise<number> {

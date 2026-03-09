@@ -30,8 +30,9 @@ router.get('/sessions/:sessionId/files', authenticateToken, async (req: any, res
 
         if (!validateSessionAccess(req, sessionId, res)) return;
 
-        const offset = parseInt(req.query.offset as string) || 0;
-        const pageSize = parseInt(req.query['page-size'] as string) || 20;
+        const MAX_PAGE_SIZE = 100;
+        const offset = Math.max(0, parseInt(req.query.offset as string) || 0);
+        const pageSize = Math.min(MAX_PAGE_SIZE, Math.max(1, parseInt(req.query['page-size'] as string) || 20));
 
         const files = await fileStorage.getFilesBySession(sessionId);
         const paginatedFiles = files.slice(offset, offset + pageSize);
@@ -48,6 +49,7 @@ router.get('/sessions/:sessionId/files', authenticateToken, async (req: any, res
 
         res.json(response);
     } catch (error) {
+        console.error('GET /sessions/:sessionId/files error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -118,6 +120,7 @@ router.post('/sessions/:sessionId/files', authenticateToken, requireFileUploadFe
 
         res.json(response);
     } catch (error) {
+        console.error('POST /sessions/:sessionId/files error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -140,6 +143,7 @@ router.delete('/sessions/:sessionId/files', authenticateToken, requireFileUpload
         await fileStorage.deleteFilesBySession(sessionId, userId, customerId);
         res.status(204).send();
     } catch (error) {
+        console.error('DELETE /sessions/:sessionId/files error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -174,6 +178,7 @@ router.get('/sessions/:sessionId/files/:fileId', authenticateToken, async (req: 
 
         res.json(response);
     } catch (error) {
+        console.error('GET /sessions/:sessionId/files/:fileId error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -194,6 +199,7 @@ router.delete('/sessions/:sessionId/files/:fileId', authenticateToken, requireFi
 
         res.status(200).json({ message: 'File deleted successfully' });
     } catch (error) {
+        console.error('DELETE /sessions/:sessionId/files/:fileId error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -232,6 +238,7 @@ router.get('/download/:fileId', async (req: any, res: Response) => {
 
         fileStream.stream.pipe(res);
     } catch (error) {
+        console.error('GET /download/:fileId error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
