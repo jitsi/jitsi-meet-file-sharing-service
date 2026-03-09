@@ -37,12 +37,10 @@ npm start
 ## API Endpoints
 
 ### Document Management
-- `GET /v1/documents/sessions/{sessionId}/files` - List files in session
 - `POST /v1/documents/sessions/{sessionId}/files` - Upload file
-- `DELETE /v1/documents/sessions/{sessionId}/files` - Delete files by session/user/customer
 - `GET /v1/documents/sessions/{sessionId}/files/{fileId}` - Get file metadata
 - `DELETE /v1/documents/sessions/{sessionId}/files/{fileId}` - Delete specific file
-- `GET /v1/documents/download/{fileId}` - Download file
+- `GET /v1/documents/download/{fileId}` - Download file (via pre-signed URL, no JWT required)
 
 ### Health Check
 - `GET /health` - Service health status
