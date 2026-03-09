@@ -28,8 +28,10 @@ export class FileStorageService {
     ): Promise<IFileRecord> {
         await this.ensureUploadDir();
 
-        // Use fileId from metadata if provided, otherwise generate one
-        const fileId = metadata.fileId || uuidv4();
+        // Use fileId from metadata only if it is a valid UUID, otherwise generate one.
+        // This prevents path traversal via a crafted fileId value.
+        const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        const fileId = (metadata.fileId && UUID_REGEX.test(metadata.fileId)) ? metadata.fileId : uuidv4();
         const fileExtension = path.extname(file.originalname);
         const fileName = `${fileId}${fileExtension}`;
         const filePath = path.join(UPLOAD_DIR, fileName);

@@ -183,7 +183,10 @@ router.get('/download/:fileId', async (req, res) => {
         }
 
         res.setHeader('Content-Type', fileStream.contentType);
-        res.setHeader('Content-Disposition', `attachment; filename="${fileStream.fileName}"`);
+        // Use RFC 5987 encoding to prevent HTTP header injection via attacker-controlled filenames.
+        const encodedFileName = encodeURIComponent(fileStream.fileName).replace(/'/g, '%27');
+
+        res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodedFileName}`);
 
         fileStream.stream.pipe(res);
     } catch (error) {
