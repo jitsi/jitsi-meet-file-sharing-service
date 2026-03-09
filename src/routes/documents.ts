@@ -125,28 +125,6 @@ router.post('/sessions/:sessionId/files', authenticateToken, requireFileUploadFe
     }
 });
 
-router.delete('/sessions/:sessionId/files', authenticateToken, requireFileUploadFeature, async (req: any, res: Response) => {
-    try {
-        const { sessionId } = req.params;
-
-        if (!validateSessionAccess(req, sessionId, res)) return;
-
-        const userId = req.query['user-id'] as string;
-        const customerId = req.query['customer-id'] as string;
-
-        if (!userId || !customerId) {
-            res.status(400).json({ error: 'user-id and customer-id are required' });
-
-            return;
-        }
-
-        await fileStorage.deleteFilesBySession(sessionId, userId, customerId);
-        res.status(204).send();
-    } catch (error) {
-        console.error('DELETE /sessions/:sessionId/files error:', error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
 
 router.get('/sessions/:sessionId/files/:fileId', authenticateToken, async (req: any, res: Response) => {
     try {
