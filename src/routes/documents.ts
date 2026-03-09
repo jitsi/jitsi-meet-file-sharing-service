@@ -85,6 +85,25 @@ router.post('/sessions/:sessionId/files', authenticateToken, requireFileUploadFe
             return;
         }
 
+        if (
+            typeof metadata !== 'object' ||
+            metadata === null ||
+            typeof metadata.conferenceFullName !== 'string' ||
+            typeof metadata.fileSize !== 'number' ||
+            metadata.fileSize <= 0 ||
+            typeof metadata.timestamp !== 'number'
+        ) {
+            res.status(400).json({ error: 'Invalid metadata: missing or malformed required fields' });
+
+            return;
+        }
+
+        if (metadata.fileSize !== file.size) {
+            res.status(400).json({ error: 'Invalid metadata: fileSize does not match uploaded file size' });
+
+            return;
+        }
+
         const fileRecord = await fileStorage.saveFile(
       sessionId,
       file,
