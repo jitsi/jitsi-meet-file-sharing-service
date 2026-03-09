@@ -76,5 +76,6 @@ Example metadata:
 
 - `PORT`: Server port (default: 3000)
 - `BASE_URL`: Base URL for pre-signed URLs (default: http://localhost:3000)
-- `JWT_SECRET`: JWT signing secret (change in production)
+- `JWT_PUBLIC_KEY_PATH`: Path to the RS256 public key file used to verify JWT tokens (required)
+- `PRESIGNED_URL_SECRET`: Secret used to sign download URLs (required)
 - `UPLOAD_DIR`: Directory for uploaded files (default: ./uploads)
