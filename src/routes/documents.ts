@@ -13,9 +13,22 @@ import { upload } from '../utils/multer';
 const router = Router();
 const fileStorage = new FileStorageService();
 
+function validateSessionAccess(req: any, sessionId: string, res: Response): boolean {
+    if (req.user.meeting_id !== sessionId) {
+        res.status(403).json({ error: 'Access denied: token not valid for this session' });
+
+        return false;
+    }
+
+    return true;
+}
+
 router.get('/sessions/:sessionId/files', authenticateToken, async (req: any, res: Response) => {
     try {
         const { sessionId } = req.params;
+
+        if (!validateSessionAccess(req, sessionId, res)) return;
+
         const offset = parseInt(req.query.offset as string) || 0;
         const pageSize = parseInt(req.query['page-size'] as string) || 20;
 
@@ -41,6 +54,9 @@ router.get('/sessions/:sessionId/files', authenticateToken, async (req: any, res
 router.post('/sessions/:sessionId/files', authenticateToken, requireFileUploadFeature, upload.single('file'), async (req: any, res: Response) => {
     try {
         const { sessionId } = req.params;
+
+        if (!validateSessionAccess(req, sessionId, res)) return;
+
         const { user } = req;
         const file = req.file;
 
@@ -81,6 +97,9 @@ router.post('/sessions/:sessionId/files', authenticateToken, requireFileUploadFe
 router.delete('/sessions/:sessionId/files', authenticateToken, requireFileUploadFeature, async (req: any, res: Response) => {
     try {
         const { sessionId } = req.params;
+
+        if (!validateSessionAccess(req, sessionId, res)) return;
+
         const userId = req.query['user-id'] as string;
         const customerId = req.query['customer-id'] as string;
 
@@ -99,7 +118,9 @@ router.delete('/sessions/:sessionId/files', authenticateToken, requireFileUpload
 
 router.get('/sessions/:sessionId/files/:fileId', authenticateToken, async (req: any, res: Response) => {
     try {
-        const { fileId } = req.params;
+        const { sessionId, fileId } = req.params;
+
+        if (!validateSessionAccess(req, sessionId, res)) return;
 
         console.log('Looking for file:', fileId);
 
@@ -131,7 +152,9 @@ router.get('/sessions/:sessionId/files/:fileId', authenticateToken, async (req: 
 
 router.delete('/sessions/:sessionId/files/:fileId', authenticateToken, requireFileUploadFeature, async (req: any, res: Response) => {
     try {
-        const { fileId } = req.params;
+        const { sessionId, fileId } = req.params;
+
+        if (!validateSessionAccess(req, sessionId, res)) return;
 
         const deleted = await fileStorage.deleteFile(fileId);
 
