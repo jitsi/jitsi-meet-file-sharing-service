@@ -8,7 +8,7 @@ import {
     IDocumentMetadataResponse,
     IFileMetadata
 } from '../types';
-import { upload } from '../utils/multer';
+import { isExecutableBuffer, upload } from '../utils/multer';
 import { validatePresignedUrl } from '../utils/presignedUrl';
 
 const router = Router();
@@ -63,6 +63,14 @@ router.post('/sessions/:sessionId/files', authenticateToken, requireFileUploadFe
 
         if (!file) {
             res.status(400).json({ error: 'No file uploaded' });
+
+            return;
+        }
+
+        // Magic byte check runs here because file.buffer is only available after
+        // multer has stored the upload in memory (cannot be done inside fileFilter).
+        if (isExecutableBuffer(file.buffer)) {
+            res.status(400).json({ error: 'File type not allowed' });
 
             return;
         }
