@@ -5,6 +5,7 @@ import documentRoutes from './routes/documents';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || 'localhost'; // Defaults to localhost if not specified
 
 // Remove the default Express fingerprinting header.
 app.disable('x-powered-by');
@@ -72,7 +73,6 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-app.listen(PORT, () => {
-  console.log(`File sharing service running on port ${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/health`);
+app.listen(Number(PORT), HOST, () => {
+    console.log(`Server is running on http://${HOST}:${PORT}`);
 });
